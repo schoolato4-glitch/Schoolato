@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SchoolCard from "../components/exploreSchool/SchoolCard";
+import API from "../api/axios"; // 👈 ADD THIS
 
 export default function Schools() {
   const [schools, setSchools] = useState([]);
@@ -9,11 +10,22 @@ export default function Schools() {
   const search = searchParams.get("search");
 
   useEffect(() => {
-    fetch(
-      `http://localhost:5000/api/schools?search=${search || ""}`
-    )
-      .then((res) => res.json())
-      .then((data) => setSchools(data.data || []));
+    const fetchSchools = async () => {
+      try {
+        const res = await API.get("/api/schools", {
+          params: {
+            search: search || ""
+          }
+        });
+
+        setSchools(res.data.data || []);
+      } catch (err) {
+        console.error(err);
+        setSchools([]);
+      }
+    };
+
+    fetchSchools();
   }, [search]);
 
   return (

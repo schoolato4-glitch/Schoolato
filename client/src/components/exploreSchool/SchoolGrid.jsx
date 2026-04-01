@@ -89,6 +89,7 @@
 
 import { useEffect, useState } from "react";
 import SchoolCard from "./SchoolCard";
+import API from "../../api/axios";
 
 export default function SchoolGrid({ filters }) {
   const [schools, setSchools] = useState([]);
@@ -96,91 +97,139 @@ export default function SchoolGrid({ filters }) {
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    let url = "http://localhost:5000/api/schools";
+    const fetchSchools = async () => {
+      try {
+        const params = {
+          page,
+          limit: 6,
+        };
 
-    const query = new URLSearchParams();
+        if (filters?.state) params.state = filters.state;
+        if (filters?.district) params.district = filters.district;
 
-    if (filters?.state) query.append("state", filters.state);
-    if (filters?.district) query.append("district", filters.district);
+        const res = await API.get("/api/schools", { params });
 
-    query.append("page", page);
-    query.append("limit", 6);
+        setSchools(res.data.data || []);
+        setTotalPages(res.data.totalPages || 1);
+      } catch (err) {
+        console.error(err);
+        setSchools([]);
+      }
+    };
 
-    const finalUrl = `${url}?${query.toString()}`;
-
-    fetch(finalUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        setSchools(data.data || []);
-        setTotalPages(data.totalPages || 1);
-      })
-      .catch((err) => console.log(err));
+    fetchSchools();
   }, [filters, page]);
 
-  // ✅ Reset page on filter change
   useEffect(() => {
     setPage(1);
   }, [filters]);
 
   return (
-    <section className="flex-1 px-4">
+    <section className="flex-1 px-3 sm:px-4 md:px-6">
 
-      {/* 🔥 HEADER */}
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">
+      {/* HEADER */}
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        
+        <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">
           Schools
         </h2>
 
-        <p className="text-sm text-gray-500">
-          Showing <span className="font-semibold">{schools.length}</span> results
+        <p className="text-xs sm:text-sm text-gray-500">
+          Showing{" "}
+          <span className="font-semibold">{schools.length}</span> results
         </p>
       </div>
 
-      {/* 🧩 GRID */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* GRID */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {schools.length > 0 ? (
           schools.map((school) => (
-            <div className="transform transition duration-300 hover:scale-105">
-              <SchoolCard key={school._id} school={school} />
+            <div
+              key={school._id}
+              className="transform transition duration-300 hover:scale-105 active:scale-95"
+            >
+              <SchoolCard school={school} />
             </div>
           ))
         ) : (
-          <div className="col-span-full text-center text-gray-500 py-10">
+          <div className="col-span-full text-center text-gray-500 py-10 text-sm sm:text-base">
             No schools found
           </div>
         )}
       </div>
 
-      {/* 🎯 PAGINATION */}
-      <div className="mt-10 flex items-center justify-center gap-3">
+     {/* PAGINATION */}
+<div className="mt-8 sm:mt-10 flex flex-col items-center gap-3">
 
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-          className={`px-4 py-2 rounded-lg border text-sm transition 
-            ${page === 1 
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-              : "bg-white hover:bg-red-500 hover:text-white border-gray-300"}`}
-        >
-          ⬅ Prev
-        </button>
+  {/* MOBILE: Compact Controls */}
+  <div className="flex w-full items-center justify-between sm:hidden gap-2">
 
-        <span className="px-4 py-2 text-sm font-medium bg-gray-100 rounded-lg">
-          Page {page} / {totalPages}
-        </span>
+    <button
+      disabled={page === 1}
+      onClick={() => setPage(page - 1)}
+      className={`flex-1 py-2 rounded-lg text-xs border transition
+        ${
+          page === 1
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white border-gray-300 active:scale-95"
+        }`}
+    >
+      ⬅ Prev
+    </button>
 
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-          className={`px-4 py-2 rounded-lg border text-sm transition 
-            ${page === totalPages 
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-              : "bg-white hover:bg-red-500 hover:text-white border-gray-300"}`}
-        >
-          Next ➡
-        </button>
+    <span className="px-3 py-2 text-xs font-medium bg-gray-100 rounded-lg whitespace-nowrap">
+      {page} / {totalPages}
+    </span>
 
-      </div>
+    <button
+      disabled={page === totalPages}
+      onClick={() => setPage(page + 1)}
+      className={`flex-1 py-2 rounded-lg text-xs border transition
+        ${
+          page === totalPages
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white border-gray-300 active:scale-95"
+        }`}
+    >
+      Next ➡
+    </button>
+  </div>
+
+  {/* DESKTOP: Full Layout */}
+  <div className="hidden sm:flex items-center justify-center gap-3">
+
+    <button
+      disabled={page === 1}
+      onClick={() => setPage(page - 1)}
+      className={`px-4 py-2 rounded-lg border text-sm transition 
+        ${
+          page === 1
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white hover:bg-red-500 hover:text-white border-gray-300"
+        }`}
+    >
+      ⬅ Prev
+    </button>
+
+    <span className="px-4 py-2 text-sm font-medium bg-gray-100 rounded-lg">
+      Page {page} / {totalPages}
+    </span>
+
+    <button
+      disabled={page === totalPages}
+      onClick={() => setPage(page + 1)}
+      className={`px-4 py-2 rounded-lg border text-sm transition 
+        ${
+          page === totalPages
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white hover:bg-red-500 hover:text-white border-gray-300"
+        }`}
+    >
+      Next ➡
+    </button>
+
+  </div>
+</div>
     </section>
   );
 }
