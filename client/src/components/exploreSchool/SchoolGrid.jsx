@@ -98,24 +98,39 @@ export default function SchoolGrid({ filters }) {
 
   useEffect(() => {
     const fetchSchools = async () => {
-      try {
-        const params = {
-          page,
-          limit: 6,
-        };
-
-        if (filters?.state) params.state = filters.state;
-        if (filters?.district) params.district = filters.district;
-
-        const res = await API.get("/api/schools", { params });
-
-        setSchools(res.data.data || []);
-        setTotalPages(res.data.totalPages || 1);
-      } catch (err) {
-        console.error(err);
-        setSchools([]);
-      }
+  try {
+    const params = {
+      page,
+      limit: 6,
+      ...(filters?.state && { state: filters.state }),
+      ...(filters?.district && { district: filters.district }),
     };
+
+    const res = await API.get("/api/schools", { params });
+
+    console.log("API RESPONSE:", res.data); // debug
+
+    // ✅ Safe handling for all cases
+    const schoolsData = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data.data)
+      ? res.data.data
+      : [];
+
+    const total =
+      res.data?.totalPages ||
+      res.data?.data?.totalPages ||
+      1;
+
+    setSchools(schoolsData);
+    setTotalPages(total);
+
+  } catch (err) {
+    console.error("Fetch Schools Error:", err);
+    setSchools([]);
+    setTotalPages(1);
+  }
+};
 
     fetchSchools();
   }, [filters, page]);

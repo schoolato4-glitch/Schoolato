@@ -8,14 +8,22 @@ export default function FilterSidebar({ setFilters }) {
 
   useEffect(() => {
     const fetchStates = async () => {
-      try {
-        const res = await API.get("/api/filters");
-        setStates(res.data.data || []);
-      } catch (error) {
-        console.error(error);
-        setStates([]);
-      }
-    };
+  try {
+    const res = await API.get("/api/filters");
+    console.log("API RESPONSE:", res.data);
+
+    if (Array.isArray(res.data)) {
+      setStates(res.data);
+    } else if (res.data.data) {
+      setStates(res.data.data);
+    } else {
+      setStates([]);
+    }
+  } catch (error) {
+    console.error(error);
+    setStates([]);
+  }
+};
 
     fetchStates();
   }, []);
