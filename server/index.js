@@ -12,7 +12,12 @@ const app = express();
 
 // ✅ Middleware
 app.use(express.json());
-app.use(cors()); // keep open for now (we'll restrict later)
+app.use(
+  cors({
+    origin: "https://schoolato-main.onrender.com",
+    credentials: true,
+  })
+); // keep open for now (we'll restrict later)
 
 // ✅ Routes
 app.use("/api", schoolRoutes);
