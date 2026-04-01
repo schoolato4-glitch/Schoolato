@@ -23,6 +23,10 @@ app.use(
 app.use("/api", schoolRoutes);
 app.use("/api", filterRoutes);
 
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // ✅ Root route (important for Render)
 app.get("/", (req, res) => {
   res.send("API running 🚀");
