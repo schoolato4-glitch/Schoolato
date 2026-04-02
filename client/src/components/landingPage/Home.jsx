@@ -94,6 +94,7 @@
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../../api/axios";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -103,36 +104,40 @@ export default function Home() {
     if (!query.trim()) return;
 
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/school/search?name=${encodeURIComponent(query)}`
-      );
+      const res = await API.get("/api/school/search", {
+        params: {
+          name: query
+        }
+      });
 
-      if (!res.ok) {
-        alert("School not found");
-        return;
-      }
+      const school = res.data;
 
-      const school = await res.json();
-
-      // Go to SchoolDetails page
+      // Navigate to details page
       navigate(`/school/${school._id}`);
+
     } catch (err) {
       console.error(err);
-      alert("Error searching for school");
+      alert("School not found or error occurred");
     }
   };
 
   return (
     <section className="relative w-full">
-      {/* Hero + background */}
-      <div className="relative h-[520px] w-full bg-cover bg-center" style={{
-        backgroundImage: "url('https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1920&q=80')",
-      }}>
+      {/* Hero */}
+      <div
+        className="relative h-[520px] w-full bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1920&q=80')",
+        }}
+      >
         <div className="absolute inset-0 bg-black/40" />
+
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white">
           <h1 className="mb-4 text-3xl md:text-5xl font-semibold">
             Find the best schools in your city
           </h1>
+
           <p className="mb-8 text-sm md:text-lg text-gray-200">
             Explore top-rated institutions and apply easily
           </p>
@@ -147,6 +152,7 @@ export default function Home() {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="flex-1 px-6 py-4 text-gray-700 outline-none"
             />
+
             <button
               onClick={handleSearch}
               className="flex items-center justify-center px-6 text-red-600"
