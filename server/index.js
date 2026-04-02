@@ -2,6 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import schoolRoutes from "./routes/schoolRoutes.js";
 import filterRoutes from "./routes/filterRoutes.js";
@@ -10,8 +12,14 @@ dotenv.config();
 
 const app = express();
 
+// ✅ Fix __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // ✅ Middleware
 app.use(express.json());
+
+// ✅ CORS (DEV + PROD)
 const allowedOrigins = [
   "http://localhost:5173", // dev
   "https://schoolato-main.onrender.com", // prod
@@ -20,7 +28,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps, curl)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -37,16 +44,18 @@ app.use(
 app.use("/api", schoolRoutes);
 app.use("/api", filterRoutes);
 
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
-// ✅ Root route (important for Render)
+// ✅ Root route
 app.get("/", (req, res) => {
   res.send("API running 🚀");
 });
 
-// ✅ Start server ONLY after DB connects
+app.use(express.static(path.join(__dirname, "dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
+
+// ✅ Start server AFTER DB connects
 const startServer = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
