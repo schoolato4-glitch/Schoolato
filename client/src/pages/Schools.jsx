@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SchoolCard from "../components/exploreSchool/SchoolCard";
-import API from "../api/axios"; // 👈 ADD THIS
+import API from "../api/axios"; 
 
 export default function Schools() {
   const [schools, setSchools] = useState([]);
